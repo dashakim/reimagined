@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { insertSearchWord } from '@/pages/api/words';
 
 interface UnsplashImage {
   description: string;
@@ -30,14 +31,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         per_page: 10,
       },
     });
-
     const simplifiedResults = unsplashResponse.data.results.map((image) => ({
       title: image.alt_description || 'No title',
       description: image.description || 'No description',
       smallImageUrl: image.urls.small,
       fullImageUrl: image.urls.full,
     }));
-
+    if (simplifiedResults.length > 0) {
+      await insertSearchWord(word, simplifiedResults, new Date().toISOString());
+    }
     res.status(200).json(simplifiedResults);
   } catch (error) {
     console.error('Error fetching images from Unsplash:', error);
